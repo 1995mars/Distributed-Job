@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/orcl # Replace localhost, 1521, and XE with your Oracle instance details
+    username: mars # Replace with your Oracle database username
+    password: 123456789 # Replace with your Oracle database password
+#    url: jdbc:oracle:thin:@//10.165.33.226:1521/tcttdev # Replace localhost, 1521, and XE with your Oracle instance details
+#    username: tungtt # Replace with your Oracle database username
+#    password: r1DAOZwF # Replace with your Oracle database password
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+  jpa:
+    hibernate:
+      ddl-auto: update # Or none, create, create-drop, validate
+      dialect: org.hibernate.dialect.OracleDialect # Or a specific dialect for your Oracle version
+    show-sql: true
+  batch:
+    jdbc:
+      initialize-schema: never
+
+  quartz:
+    data-source:
+      url: jdbc:oracle:thin:@//localhost:1521/orcl # Replace localhost, 1521, and XE with your Oracle instance details
+      username: mars # Replace with your Oracle database username
+      password: 1234567891 # Replace with your Oracle database password
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
