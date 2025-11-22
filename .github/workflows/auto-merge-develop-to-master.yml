@@ -1,0 +1,27 @@
+name: Auto Merge develop -> master
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"   # 00:00 Thứ 2 hàng tuần (UTC)
+  workflow_dispatch:       # Cho phép chạy thủ công
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Merge develop into master
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git fetch origin develop
+          git merge origin/develop --no-ff -m "Auto-merge develop into master"
+
+      - name: Push changes
+        run: |
+          git push origin master
