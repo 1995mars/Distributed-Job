@@ -4,15 +4,15 @@ COMMIT;
 
 -- Task definitions
 INSERT INTO task (name, description, class_name) VALUES
-    ('Task 1', 'Step 1', 'com.mars.OneCV.batch.Task1Runner');
+    ('Task 1', 'Step 1', 'com.mars.batch.Task1Runner');
 INSERT INTO task (name, description, class_name) VALUES
-    ('Task 2', 'Step 2', 'com.mars.OneCV.batch.Task2Runner');
+    ('Task 2', 'Step 2', 'com.mars.batch.Task2Runner');
 INSERT INTO task (name, description, class_name) VALUES
-    ('Task 3', 'Step 3', 'com.mars.OneCV.batch.Task3Runner');
+    ('Task 3', 'Step 3', 'com.mars.batch.Task3Runner');
 INSERT INTO task (name, description, class_name) VALUES
-    ('Task 4', 'Step 4', 'com.mars.OneCV.batch.Task4Runner');
+    ('Task 4', 'Step 4', 'com.mars.batch.Task4Runner');
 INSERT INTO task (name, description, class_name) VALUES
-    ('Task 5', 'Step 5', 'com.mars.OneCV.batch.Task5Runner');
+    ('Task 5', 'Step 5', 'com.mars.batch.Task5Runner');
 COMMIT;
 
 -- Map schedule to tasks
