@@ -16,7 +16,7 @@ jobs:
           ref: master
           token: ${{ secrets.GH_PAT }}
 
-      - name: Configure Git
+      - name: Setup Git identity
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
@@ -27,8 +27,9 @@ jobs:
 
       - name: Merge develop into master
         run: |
-          git merge origin/develop --no-ff --allow-unrelated-histories -m "Auto-merge develop into master"
+          git merge origin/develop --no-ff --allow-unrelated-histories -m "Auto merge develop into master"
 
       - name: Push changes using PAT
         run: |
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/1995mars/Distributed-Job.git HEAD:master
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/1995mars/Distributed-Job.git
+          git push origin HEAD:master
