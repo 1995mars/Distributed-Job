@@ -2,7 +2,7 @@ name: Auto Merge develop -> master
 
 on:
   schedule:
-    - cron: "0 0 * * 1"   # 00:00 Thứ 2 hàng tuần (UTC)
+    - cron: "0 0 * * 1"   # Chạy 00:00 Thứ 2 (UTC)
   workflow_dispatch:       # Cho phép chạy thủ công
 
 jobs:
@@ -10,19 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout master
+      - name: Checkout master using PAT
         uses: actions/checkout@v4
         with:
           ref: master
-          persist-credentials: true
+          token: ${{ secrets.GH_PAT }}   # Dùng PAT thay cho GITHUB_TOKEN
 
-      - name: Merge develop into master
+      - name: Configure Git
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git fetch origin develop
-          git merge origin/develop --no-ff -m "Auto-merge develop into master"
 
-      - name: Push changes
+      - name: Fetch develop branch
         run: |
-          git push origin master
+          git fetch origin develop
+
+      - name: Merge develop into master
+        run: |
+          git merge origin/develop --no-ff --allow-unrelated-histories -m "Auto-merge develop into master"
+
+      - name: Push changes using PAT
+        run: |
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/1995mars/Distributed-Job.git master
