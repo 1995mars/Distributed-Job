@@ -12,6 +12,18 @@ jobs:
       contents: write    # quan trọng: cấp quyền write cho GITHUB_TOKEN (vẫn cần PAT để push an toàn hơn)
 
     steps:
+      - name: Check PUSH_TOKEN tồn tại và có giá trị chưa
+        run: |
+          echo "=== Kiểm tra secret PUSH_TOKEN ==="
+          if [ -z "${{ secrets.PUSH_TOKEN }}" ]; then
+            echo "ERROR: KHÔNG lấy được PUSH_TOKEN"
+            exit 1
+          else
+            echo "OK: ĐÃ lấy được PUSH_TOKEN thành công"
+            TOKEN="${{ secrets.PUSH_TOKEN }}"
+            echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
+            echo "Token kết thúc bằng: ...${TOKEN: -10}"
+          fi
       # 1. Checkout với PAT để có quyền push
       - name: Checkout repository
         uses: actions/checkout@v4
