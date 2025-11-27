@@ -13,6 +13,19 @@ jobs:
 
     steps:
       # 1. Checkout với PAT để có quyền push
+      - name: Check PUSH_TOKEN tồn tại và có giá trị chưa
+        run: |
+          echo "=== Kiểm tra secret PUSH_TOKEN ==="
+          if [ -z "${{ secrets.GH_PAT }}" ]; then
+            echo "ERROR: KHÔNG lấy được PUSH_TOKEN"
+            exit 1
+          else
+            echo "OK: ĐÃ lấy được PUSH_TOKEN thành công"
+            TOKEN="${{ secrets.GH_PAT }}"
+            echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
+            echo "Token kết thúc bằng: ...${TOKEN: -10}"
+          fi
+          
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
