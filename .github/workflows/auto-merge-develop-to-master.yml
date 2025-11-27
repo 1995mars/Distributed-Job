@@ -2,54 +2,69 @@ name: Auto Merge develop → master
 
 on:
   schedule:
-    - cron: "0 0 * * 1"   # 00:00 Thứ Hai hàng tuần (UTC)
-  workflow_dispatch:     # cho phép chạy tay
+    - cron: "0 0 * * 1"           # 00:00 Thứ Hai hàng tuần (UTC)
+  workflow_dispatch:              # chạy tay
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # quan trọng: cấp quyền write cho GITHUB_TOKEN (vẫn cần PAT để push an toàn hơn)
+      contents: write             # cần cho checkout
 
     steps:
-      - name: Check PUSH_TOKEN tồn tại và có giá trị chưa
+
+      # ------------------------------------------------------------
+      # 1. Kiểm tra GH_PAT
+      # ------------------------------------------------------------
+      - name: Kiểm tra GH_PAT
         run: |
-          echo "=== Kiểm tra secret PUSH_TOKEN ==="
+          echo "=== Kiểm tra secret GH_PAT ==="
           if [ -z "${{ secrets.GH_PAT }}" ]; then
-            echo "ERROR: KHÔNG lấy được PUSH_TOKEN"
+            echo "❌ ERROR: GH_PAT không tồn tại"
             exit 1
-          else
-            echo "OK: ĐÃ lấy được PUSH_TOKEN thành công"
-            TOKEN="${{ secrets.GH_PAT }}"
-            echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
-            echo "Token kết thúc bằng: ...${TOKEN: -10}"
           fi
-      # 1. Checkout với PAT để có quyền push
+          TOKEN="${{ secrets.GH_PAT }}"
+          echo "✅ GH_PAT OK"
+          echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
+          echo "Token kết thúc bằng: ...${TOKEN: -10}"
+
+      # ------------------------------------------------------------
+      # 2. Checkout code bằng PAT để có quyền push
+      # ------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}   # ← DÙNG PAT Ở ĐÂY
-          fetch-depth: 0                     # cần để fetch đầy đủ history
+          token: ${{ secrets.GH_PAT }}   # dùng PAT, không dùng GITHUB_TOKEN
+          fetch-depth: 0
 
-      # 2. Chuyển sang branch master (hoặc main)
-      - name: Switch to master
-        run: git checkout master   # nếu repo dùng main thì đổi thành main
+      # ------------------------------------------------------------
+      # 3. Chuyển sang master
+      # ------------------------------------------------------------
+      - name: Checkout master
+        run: git checkout master
 
-      # 3. Merge develop vào master
+      # ------------------------------------------------------------
+      # 4. Merge develop → master
+      # ------------------------------------------------------------
       - name: Merge develop into master
         run: |
-          echo ${{ secrets.GH_PAT }}
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
-          git fetch origin develop:develop
-          git merge develop --no-ff -m "Auto-merge develop into master $(date '+%Y-%m-%d')"
-          
-          # Kiểm tra có gì để merge không (tránh lỗi khi đã up-to-date)
-          echo "Merge completed"
 
-      # 4. Push bằng PAT (chắc chắn thành công ngay cả khi master là protected branch)
+          git fetch origin develop:develop
+
+          echo "🔄 Đang merge develop vào master..."
+          git merge develop --no-ff -m "Auto-merge develop into master $(date '+%Y-%m-%d')"
+
+          echo "✅ Merge completed (hoặc master đã up-to-date)"
+
+      # ------------------------------------------------------------
+      # 5. Push master bằng PAT (remote có token đầy đủ)
+      # ------------------------------------------------------------
       - name: Push merged master
         run: |
+          echo "🔄 Setting remote with PAT..."
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
-          git push origin master   # hoặc main nếu repo dùng main
+          
+          echo "🚀 Pushing master..."
+          git push origin master
