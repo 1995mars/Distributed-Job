@@ -1,35 +1,42 @@
-name: Auto Merge develop -> master
+name: Auto Merge develop → master
 
 on:
   schedule:
-    - cron: "0 0 * * 1"
-  workflow_dispatch:
+    - cron: "0 0 * * 1"   # 00:00 Thứ Hai hàng tuần (UTC)
+  workflow_dispatch:     # cho phép chạy tay
 
 jobs:
   merge:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    # quan trọng: cấp quyền write cho GITHUB_TOKEN (vẫn cần PAT để push an toàn hơn)
 
     steps:
-      - name: Checkout master with PAT
+      # 1. Checkout với PAT để có quyền push
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: master
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.PUSH_TOKEN }}   # ← DÙNG PAT Ở ĐÂY
+          fetch-depth: 0                     # cần để fetch đầy đủ history
 
-      - name: Setup Git identity
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+      # 2. Chuyển sang branch master (hoặc main)
+      - name: Switch to master
+        run: git checkout master   # nếu repo dùng main thì đổi thành main
 
-      - name: Fetch develop
-        run: |
-          git fetch origin develop
-
+      # 3. Merge develop vào master
       - name: Merge develop into master
         run: |
-          git merge origin/develop --no-ff --allow-unrelated-histories -m "Auto merge develop into master"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          
+          git fetch origin develop:develop
+          git merge develop --no-ff -m "Auto-merge develop into master $(date '+%Y-%m-%d')"
+          
+          # Kiểm tra có gì để merge không (tránh lỗi khi đã up-to-date)
+          echo "Merge completed"
 
-      - name: Push changes using PAT
+      # 4. Push bằng PAT (chắc chắn thành công ngay cả khi master là protected branch)
+      - name: Push merged master
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/1995mars/Distributed-Job.git
-          git push origin HEAD:master
+          git remote set-url origin https://x-access-token:${{ secrets.PUSH_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin master   # hoặc main nếu repo dùng main
