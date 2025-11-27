@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PUSH_TOKEN }}   # ← DÙNG PAT Ở ĐÂY
+          token: ${{ secrets.GH_PAT }}   # ← DÙNG PAT Ở ĐÂY
           fetch-depth: 0                     # cần để fetch đầy đủ history
 
       # 2. Chuyển sang branch master (hoặc main)
@@ -38,5 +38,5 @@ jobs:
       # 4. Push bằng PAT (chắc chắn thành công ngay cả khi master là protected branch)
       - name: Push merged master
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.PUSH_TOKEN }}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
           git push origin master   # hoặc main nếu repo dùng main
