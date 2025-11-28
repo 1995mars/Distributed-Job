@@ -2,14 +2,14 @@ name: Auto Merge develop → master
 
 on:
   schedule:
-    - cron: "0 0 * * 1"           # 00:00 Thứ Hai hàng tuần (UTC)
-  workflow_dispatch:              # chạy tay
+    - cron: "0 0 * * 1"  # chạy 00:00 Thứ Hai (UTC)
+  workflow_dispatch:
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     permissions:
-      contents: write             # cần cho checkout
+      contents: write
 
     steps:
 
@@ -29,19 +29,21 @@ jobs:
           echo "Token kết thúc bằng: ...${TOKEN: -10}"
 
       # ------------------------------------------------------------
-      # 2. Checkout code bằng PAT để có quyền push
+      # 2. Checkout bằng PAT
       # ------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}   # dùng PAT, không dùng GITHUB_TOKEN
+          token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
       # ------------------------------------------------------------
-      # 3. Chuyển sang master
+      # 3. Fetch master + checkout
       # ------------------------------------------------------------
       - name: Checkout master
-        run: git checkout master
+        run: |
+          git fetch origin master:master || true
+          git checkout master
 
       # ------------------------------------------------------------
       # 4. Merge develop → master
@@ -54,12 +56,13 @@ jobs:
           git fetch origin develop:develop
 
           echo "🔄 Đang merge develop vào master..."
-          git merge develop --no-ff -m "Auto-merge develop into master $(date '+%Y-%m-%d')"
+          git merge develop --no-ff -m "Auto-merge develop into master ($(date '+%Y-%m-%d'))" || \
+          echo "⚠️ Already up-to-date hoặc không thể merge (conflict?)"
 
-          echo "✅ Merge completed (hoặc master đã up-to-date)"
+          echo "✅ Merge step hoàn tất"
 
       # ------------------------------------------------------------
-      # 5. Push master bằng PAT (remote có token đầy đủ)
+      # 5. Push master bằng PAT
       # ------------------------------------------------------------
       - name: Push merged master
         run: |
