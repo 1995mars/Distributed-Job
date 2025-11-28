@@ -2,73 +2,55 @@ name: Auto Merge develop → master
 
 on:
   schedule:
-    - cron: "0 0 * * 1"  # chạy 00:00 Thứ Hai (UTC)
-  workflow_dispatch:
+    - cron: "0 0 * * 1"   # 00:00 Thứ Hai hàng tuần (UTC)
+  workflow_dispatch:     # cho phép chạy tay
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write    # quan trọng: cấp quyền write cho GITHUB_TOKEN (vẫn cần PAT để push an toàn hơn)
 
     steps:
-
-      # ------------------------------------------------------------
-      # 1. Kiểm tra GH_PAT
-      # ------------------------------------------------------------
-      - name: Kiểm tra GH_PAT
+      # 1. Checkout với PAT để có quyền push
+      - name: Check PUSH_TOKEN tồn tại và có giá trị chưa
         run: |
-          echo "=== Kiểm tra secret GH_PAT ==="
+          echo "=== Kiểm tra secret PUSH_TOKEN ==="
           if [ -z "${{ secrets.GH_PAT }}" ]; then
-            echo "❌ ERROR: GH_PAT không tồn tại"
+            echo "ERROR: KHÔNG lấy được PUSH_TOKEN"
             exit 1
+          else
+            echo "OK: ĐÃ lấy được PUSH_TOKEN thành công"
+            TOKEN="${{ secrets.GH_PAT }}"
+            echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
+            echo "Token kết thúc bằng: ...${TOKEN: -10}"
           fi
-          TOKEN="${{ secrets.GH_PAT }}"
-          echo "✅ GH_PAT OK"
-          echo "Token bắt đầu bằng: ${TOKEN:0:10}..."
-          echo "Token kết thúc bằng: ...${TOKEN: -10}"
-
-      # ------------------------------------------------------------
-      # 2. Checkout bằng PAT
-      # ------------------------------------------------------------
+          
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
-          persist-credentials: false
-          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}   # ← DÙNG PAT Ở ĐÂY
+          fetch-depth: 0                     # cần để fetch đầy đủ history
 
-      # ------------------------------------------------------------
-      # 3. Fetch master + checkout
-      # ------------------------------------------------------------
-      - name: Checkout master
-        run: |
-          git fetch origin master:master || true
-          git checkout master
+      # 2. Chuyển sang branch master (hoặc main)
+      - name: Switch to master
+        run: git checkout master   # nếu repo dùng main thì đổi thành main
 
-      # ------------------------------------------------------------
-      # 4. Merge develop → master
-      # ------------------------------------------------------------
+      # 3. Merge develop vào master
       - name: Merge develop into master
         run: |
+          echo ${{ secrets.GH_PAT }}
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-
+          
           git fetch origin develop:develop
+          git merge develop --no-ff -m "Auto-merge develop into master $(date '+%Y-%m-%d')"
+          
+          # Kiểm tra có gì để merge không (tránh lỗi khi đã up-to-date)
+          echo "Merge completed"
 
-          echo "🔄 Đang merge develop vào master..."
-          git merge develop --no-ff -m "Auto-merge develop into master ($(date '+%Y-%m-%d'))" || \
-          echo "⚠️ Already up-to-date hoặc không thể merge (conflict?)"
-
-          echo "✅ Merge step hoàn tất"
-
-      # ------------------------------------------------------------
-      # 5. Push master bằng PAT
-      # ------------------------------------------------------------
+      # 4. Push bằng PAT (chắc chắn thành công ngay cả khi master là protected branch)
       - name: Push merged master
         run: |
-          echo "🔄 Setting remote with PAT..."
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
-          
-          echo "🚀 Pushing master..."
-          git push origin master
+          git push origin master   # hoặc main nếu repo dùng main
