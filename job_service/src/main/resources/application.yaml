@@ -26,3 +26,7 @@ spring:
       initialize-schema: never
     properties:
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
+
+redis:
+  host: localhost
+  port: 6379
