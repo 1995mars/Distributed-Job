@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Entity
-@Table(name = "SD_GOI_DADV", schema = "tinhcuoc_hpg")
+@Table(name = "SD_GOI_DADV")
 @Data
 public class SdGoiDadv {
 

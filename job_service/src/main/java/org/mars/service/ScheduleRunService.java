@@ -15,6 +15,7 @@ public class ScheduleRunService {
     private final TaskDependencyRepository depRepo;
     private final TaskRepository taskRepo;
     private final TaskRunServiceV2 runService;
+    private final RedisService redisService;
 
 
     public void runSchedule(Long scheduleId) {
@@ -26,6 +27,7 @@ public class ScheduleRunService {
 
         for (Task task : tasks) {
             runService.triggerQuartzJob(scheduleId, task.getId());
+            redisService.setInterrupted(scheduleId, scheduleId, false);
         }
     }
 }

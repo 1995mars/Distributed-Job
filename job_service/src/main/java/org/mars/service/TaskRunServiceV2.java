@@ -26,17 +26,20 @@ public class TaskRunServiceV2 {
     private final TaskDependencyRepository depRepo;
     private final TaskRunHistoryRepository historyRepo;
     private final ApplicationContext context;
+    private final RedisService redisService;
 
     @Transactional
-    public void executeTask(Long scheduleId, Long taskId, Supplier<Boolean> isStopped) {
+    public void executeTask(Long scheduleId, Long taskId) {
         Task task = taskRepo.findById(taskId).orElseThrow();
         TaskRunHistory history = new TaskRunHistory(scheduleId, taskId, LocalDateTime.now(), "RUNNING");
         historyRepo.save(history);
 
+        boolean isInterrupted = redisService.checkInterrupted(scheduleId, taskId);
+
         try {
             TaskRunner runner = (TaskRunner) context.getBean(Class.forName(task.getClassName()));
-            runner.runTask(isStopped); // truyền flag
-            history.setStatus(isStopped.get() ? "STOPPED" : "SUCCESS");
+            runner.runTask(() -> isInterrupted); 
+            history.setStatus(isInterrupted ? "STOPPED" : "SUCCESS");
         } catch (Exception e) {
             history.setStatus("FAILED");
             history.setMessage(e.getMessage());
@@ -45,7 +48,7 @@ public class TaskRunServiceV2 {
             historyRepo.save(history);
         }
 
-        if (!isStopped.get()) {
+        if (isInterrupted) {
             triggerNextTasks(scheduleId, taskId);
         }
     }

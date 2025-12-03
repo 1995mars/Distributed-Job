@@ -20,7 +20,7 @@ public class Task2Runner implements TaskRunner {
         try {
             for (int i = 0; i < 10; i++) {
                 // Nếu job bị ngắt, thoát ngay
-                if (InterruptableTask.isInterrupted() || Thread.interrupted()) {
+                if (isStopped.get() || Thread.interrupted()) {
                     System.out.println("❌ Job bị dừng giữa chừng!");
                     return;
                 }

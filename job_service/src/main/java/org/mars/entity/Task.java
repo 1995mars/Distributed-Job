@@ -30,8 +30,6 @@ public class Task {
 
     private String active; // 'Y' or 'N'
 
-    private Boolean isInterrupted;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

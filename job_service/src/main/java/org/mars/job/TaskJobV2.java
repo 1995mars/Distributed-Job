@@ -19,7 +19,7 @@ public class TaskJobV2 implements InterruptableJob {
         Long taskId = ctx.getMergedJobDataMap().getLong("taskId");
 
         TaskRunServiceV2 service = context.getBean(TaskRunServiceV2.class);
-        service.executeTask(scheduleId, taskId, () -> interrupted);
+        service.executeTask(scheduleId, taskId);
     }
 
     @Override
