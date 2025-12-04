@@ -17,21 +17,23 @@ public class Task2Runner implements TaskRunner {
     public void runTask(Supplier<Boolean> isStopped) throws InterruptedException {
         System.out.println("Task2Runner;");
 
-        try {
-            for (int i = 0; i < 10; i++) {
-                // Nếu job bị ngắt, thoát ngay
-                if (isStopped.get() || Thread.interrupted()) {
+        for (int i = 0; i < 10; i++) {
+            if (isStopped.get()) {
+                System.out.println("❌ Job bị dừng giữa chừng!");
+                return;
+            }
+
+            long slept = 0;
+            while (slept < 10_000) {
+                if (isStopped.get()) {
                     System.out.println("❌ Job bị dừng giữa chừng!");
                     return;
                 }
-
-                Thread.sleep(10000);
-                System.out.println("Đang xử lý " + (i + 1) + "...");
+                Thread.sleep(200);
+                slept += 200;
             }
-        } catch (InterruptedException e) {
-            System.out.println("❌ Thread bị ngắt khi sleep!");
-            Thread.currentThread().interrupt();
-            return;
+
+            System.out.println("Đang xử lý " + (i + 1) + "...");
         }
 
         System.out.println("Task2Runner;");

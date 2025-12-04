@@ -34,12 +34,12 @@ public class TaskRunServiceV2 {
         TaskRunHistory history = new TaskRunHistory(scheduleId, taskId, LocalDateTime.now(), "RUNNING");
         historyRepo.save(history);
 
-        boolean isInterrupted = redisService.checkInterrupted(scheduleId, taskId);
+        Supplier<Boolean> isStopped = () -> redisService.checkInterrupted(scheduleId, taskId);
 
         try {
             TaskRunner runner = (TaskRunner) context.getBean(Class.forName(task.getClassName()));
-            runner.runTask(() -> isInterrupted); 
-            history.setStatus(isInterrupted ? "STOPPED" : "SUCCESS");
+            runner.runTask(isStopped);
+            history.setStatus(isStopped.get() ? "STOPPED" : "SUCCESS");
         } catch (Exception e) {
             history.setStatus("FAILED");
             history.setMessage(e.getMessage());
@@ -48,7 +48,7 @@ public class TaskRunServiceV2 {
             historyRepo.save(history);
         }
 
-        if (isInterrupted) {
+        if (!isStopped.get()) {
             triggerNextTasks(scheduleId, taskId);
         }
     }

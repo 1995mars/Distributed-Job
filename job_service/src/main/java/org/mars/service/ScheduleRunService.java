@@ -27,7 +27,7 @@ public class ScheduleRunService {
 
         for (Task task : tasks) {
             runService.triggerQuartzJob(scheduleId, task.getId());
-            redisService.setInterrupted(scheduleId, scheduleId, false);
+            redisService.setInterrupted(scheduleId, task.getId(), false);
         }
     }
 }
